@@ -1,0 +1,6 @@
+SELECT grantor
+,      table_name
+,      privilege
+FROM   dba_tab_privs
+WHERE  table_name = 'UPLOADTEXT'
+/
