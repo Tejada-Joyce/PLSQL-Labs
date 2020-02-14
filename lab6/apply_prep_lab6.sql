@@ -5,15 +5,9 @@
 ||  Dependencies:  Run the Oracle Database 12c PL/SQL Programming setup programs.
 */
 
-/* Set environment variables. */
-SET ECHO ON
-SET FEEDBACK ON
-SET PAGESIZE 49999
-SET SERVEROUTPUT ON SIZE UNLIMITED
-
 -- Call seeding libraries.
-@$LIB/cleanup_oracle.sql
-@$LIB/Oracle12cPLSQLCode/Introduction/create_video_store.sql
+@/home/student/Data/cit325/lib/cleanup_oracle.sql
+@/home/student/Data/cit325/lib/Oracle12cPLSQLCode/Introduction/create_video_store.sql
 
 -- Open log file.
 SPOOL apply_prep_lab6.txt

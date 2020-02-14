@@ -1,0 +1,1254 @@
+SQL> SET FEEDBACK ON
+SQL> SET PAGESIZE 49999
+SQL> SET SERVEROUTPUT ON SIZE UNLIMITED
+SQL> 
+SQL> /* Display common_lookup_tab collection and common_lookup_obj type, which should be none
+SQL> 	because of the cleanup.sql script. */
+SQL> COL object_name FORMAT A30 HEADING "Object Name"
+SQL> COL object_type FORMAT A30 HEADING "Object Type"
+SQL> SELECT   object_name
+  2  ,	      object_type
+  3  FROM     user_objects
+  4  WHERE    REGEXP_LIKE(object_name,'^common_lookup.*$','i')
+  5  AND      object_type = 'TYPE'
+  6  ORDER BY 2 DESC;
+
+no rows selected
+
+SQL> 
+SQL> /* Conditionally drop the common lookup types, table and then objectWHERE. */
+SQL> BEGIN
+  2    FOR i IN (SELECT   type_name
+  3  		 FROM	  user_types
+  4  		 WHERE	  REGEXP_LIKE(type_name,'^common_lookup.*$','i')
+  5  		 ORDER BY 1 DESC) LOOP
+  6  	 EXECUTE IMMEDIATE 'DROP TYPE '||i.type_name;
+  7    END LOOP;
+  8  END;
+  9  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> /* Create object type. */
+SQL> CREATE OR REPLACE
+  2    TYPE common_lookup_obj IS OBJECT
+  3    ( common_lookup_table	VARCHAR2(30)
+  4    , common_lookup_column	VARCHAR2(30)
+  5    , common_lookup_type	VARCHAR2(30)
+  6    , common_lookup_code	VARCHAR2(8)
+  7    , common_lookup_meaning	VARCHAR2(255));
+  8  /
+
+Type created.
+
+SQL> 
+SQL> -- Create collection of object type.
+SQL> CREATE OR REPLACE
+  2    TYPE common_lookup_tab IS TABLE OF common_lookup_obj;
+  3  /
+
+Type created.
+
+SQL> 
+SQL> -- Create lookup type.
+SQL> CREATE OR REPLACE
+  2    TYPE common_lookup_type IS OBJECT
+  3    ( TYPE	  VARCHAR2(30)
+  4    , meaning  VARCHAR2(255));
+  5  /
+
+Type created.
+
+SQL> 
+SQL> -- Create collection of lookup type.
+SQL> CREATE OR REPLACE
+  2    TYPE common_lookup_type_tab IS TABLE OF common_lookup_type;
+  3  /
+
+Type created.
+
+SQL> 
+SQL> /* Display common_lookup_tab collection and common_lookup_obj type. */
+SQL> COL object_name FORMAT A30 HEADING "Object Name"
+SQL> COL object_type FORMAT A30 HEADING "Object Type"
+SQL> SELECT   object_name
+  2  ,	      object_type
+  3  FROM     user_objects
+  4  WHERE    REGEXP_LIKE(object_name,'^common_lookup.*$','i')
+  5  AND      object_type = 'TYPE'
+  6  ORDER BY 2 DESC;
+
+Object Name                    Object Type                                      
+------------------------------ ------------------------------                   
+COMMON_LOOKUP_TYPE_TAB         TYPE                                             
+COMMON_LOOKUP_TYPE             TYPE                                             
+COMMON_LOOKUP_TAB              TYPE                                             
+COMMON_LOOKUP_OBJ              TYPE                                             
+
+4 rows selected.
+
+SQL> 
+SQL> -- Declare anonymous block.
+SQL> DECLARE
+  2    /* Declare input values. */
+  3    lv_common_lookup_table	 VARCHAR2(30) := 'ITEM';
+  4    lv_common_lookup_column	 VARCHAR2(30) := 'ITEM_TYPE';
+  5    lv_common_lookup_code	 VARCHAR2(8);
+  6  
+  7    /* Declare collections of types. */
+  8    lv_common_lookup_type_tab  COMMON_LOOKUP_TYPE_TAB :=
+  9  	 common_lookup_type_tab( common_lookup_type('BLU-RAY','Blu-ray')
+ 10  			       , common_lookup_type('HD','Digital HD')
+ 11  			       , common_lookup_type('SD','Digital SD')
+ 12  			       , common_lookup_type('DVD','DVD'));
+ 13  
+ 14    /* Declare empty collection. */
+ 15    lv_common_lookup_tab  COMMON_LOOKUP_TAB := common_lookup_tab();
+ 16  BEGIN
+ 17    /* Implement assignment of variables inside a loop, which mimics
+ 18  	  how you would handle them if they were read from a cursor loop. */
+ 19    FOR i IN 1..lv_common_lookup_type_tab.COUNT LOOP
+ 20  	 lv_common_lookup_tab.EXTEND;
+ 21  	 lv_common_lookup_tab(lv_common_lookup_tab.COUNT) :=
+ 22  	    common_lookup_obj( lv_common_lookup_table
+ 23  			     , lv_common_lookup_column
+ 24  			     , lv_common_lookup_type_tab(i).TYPE
+ 25  			     , lv_common_lookup_code
+ 26  			     , lv_common_lookup_type_tab(i).meaning );
+ 27    END LOOP;
+ 28  
+ 29    /* Insert the values from the collection into a table. */
+ 30    FOR i IN 1..lv_common_lookup_tab.COUNT LOOP
+ 31  	 INSERT INTO common_lookup
+ 32  	 VALUES
+ 33  	 ( common_lookup_s1.NEXTVAL
+ 34  	 , lv_common_lookup_table
+ 35  	 , lv_common_lookup_column
+ 36  	 , lv_common_lookup_tab(i).common_lookup_type
+ 37  	 , lv_common_lookup_code
+ 38  	 , lv_common_lookup_tab(i).common_lookup_meaning
+ 39  	 , 1
+ 40  	 , SYSDATE
+ 41  	 , 1
+ 42  	 , SYSDATE );
+ 43    END LOOP;
+ 44    /* Make insert permanent. */
+ 45    COMMIT;
+ 46  END;
+ 47  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> /* Query table for insert. */
+SQL> COL common_lookup_table   FORMAT A12
+SQL> COL common_lookup_column  FORMAT A12
+SQL> COL common_lookup_type    FORMAT A12
+SQL> SELECT  common_lookup_table
+  2  ,	     common_lookup_column
+  3  ,	     common_lookup_type
+  4  FROM    common_lookup
+  5  WHERE   common_lookup_type IN ('BLU-RAY','HD','SD','DVD');
+
+Lookup       Lookup       Lookup                                                
+Table        Column       Type                                                  
+------------ ------------ ------------                                          
+ITEM         ITEM_TYPE    BLU-RAY                                               
+ITEM         ITEM_TYPE    DVD                                                   
+ITEM         ITEM_TYPE    HD                                                    
+ITEM         ITEM_TYPE    SD                                                    
+
+4 rows selected.
+
+SQL> 
+SQL> /* Update NR to PG-13 ratings. */
+SQL> UPDATE item
+  2  SET    item_rating = 'PG-13'
+  3  WHERE  item_rating = 'NR';
+
+3 rows updated.
+
+SQL> 
+SQL> /* Update an incorrect title. */
+SQL> UPDATE item
+  2  SET    item_title = 'Harry Potter and the Sorcerer''s Stone'
+  3  WHERE  item_title = 'Harry Potter and the Sorcer''s Stone';
+
+2 rows updated.
+
+SQL> 
+SQL> /* Remove database trigger to reoranize item ratings. */
+SQL> DROP TRIGGER item_t1;
+
+Trigger dropped.
+
+SQL> 
+SQL> /* Conditionally drop the common lookup types, table and then objectWHERE. */
+SQL> BEGIN
+  2    FOR i IN (SELECT   type_name
+  3  		 FROM	  user_types
+  4  		 WHERE	  REGEXP_LIKE(type_name,'^item_title.*$','i')
+  5  		 ORDER BY 1 DESC) LOOP
+  6  	 EXECUTE IMMEDIATE 'DROP TYPE '||i.type_name;
+  7    END LOOP;
+  8  END;
+  9  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> CREATE OR REPLACE
+  2    TYPE item_title_obj IS OBJECT
+  3    ( title	   VARCHAR2(60)
+  4    , subtitle  VARCHAR2(60)
+  5    , rating    VARCHAR2(8));
+  6  /
+
+Type created.
+
+SQL> 
+SQL> CREATE OR REPLACE
+  2    TYPE item_title_tab IS TABLE OF item_title_obj;
+  3  /
+
+Type created.
+
+SQL> 
+SQL> DESC item
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ ITEM_ID                                   NOT NULL NUMBER
+ ITEM_BARCODE                              NOT NULL VARCHAR2(20)
+ ITEM_TYPE                                 NOT NULL NUMBER
+ ITEM_TITLE                                NOT NULL VARCHAR2(60)
+ ITEM_SUBTITLE                                      VARCHAR2(60)
+ ITEM_DESC                                 NOT NULL CLOB
+ ITEM_PHOTO                                         BINARY FILE LOB
+ ITEM_RATING                               NOT NULL VARCHAR2(8)
+ ITEM_RATING_AGENCY                        NOT NULL VARCHAR2(4)
+ ITEM_RELEASE_DATE                         NOT NULL DATE
+ CREATED_BY                                NOT NULL NUMBER
+ CREATION_DATE                             NOT NULL DATE
+ LAST_UPDATED_BY                           NOT NULL NUMBER
+ LAST_UPDATE_DATE                          NOT NULL DATE
+
+SQL> 
+SQL> /* Remove case descriptors from the subtitle. */
+SQL> UPDATE item i
+  2  SET    i.item_subtitle = NULL
+  3  WHERE  REGEXP_LIKE(item_subtitle,'^Two-Disc Special Edition.*$','i')
+  4  OR     REGEXP_LIKE(item_subtitle,'^2-Disc Special Edition.*$','i')
+  5  OR     REGEXP_LIKE(item_subtitle,'^Three-Disc Special Edition.*$','i')
+  6  OR     REGEXP_LIKE(item_subtitle,'^Special Edition.*$','i')
+  7  OR     REGEXP_LIKE(item_subtitle,'^Special Collector''s Edition.*$','i') -- '
+  8  OR     REGEXP_LIKE(item_subtitle,'^Two-Disc Collector''s Edition.*$','i') -- '
+  9  OR     REGEXP_LIKE(item_subtitle,'^Full Screen Edition.*$','i')
+ 10  OR     REGEXP_LIKE(item_subtitle,'^2-Disc Full Screen Edition.*$','i')
+ 11  OR     REGEXP_LIKE(item_subtitle,'^Widescreen Edition.*$','i')
+ 12  OR     REGEXP_LIKE(item_subtitle,'^Wide Screen Edition.*$','i')
+ 13  OR     REGEXP_LIKE(item_subtitle,'^Fullscreen Edition.*$','i')
+ 14  OR     REGEXP_LIKE(item_subtitle,'^Platinum Series Special Extended Edition.*$','i')
+ 15  OR     REGEXP_LIKE(item_subtitle,'^Fullscreen Special Edition.*$','i')
+ 16  OR     REGEXP_LIKE(item_subtitle,'^Widescreen Special Edition.*$','i')
+ 17  OR     REGEXP_LIKE(item_subtitle,'^Unrated Extended Cut Special Edition.*$','i')
+ 18  OR     REGEXP_LIKE(item_subtitle,'^Unrated Extended Cut Edition.*$','i')
+ 19  OR     REGEXP_LIKE(item_subtitle,'^2-Disc Ultimate Version.*$','i')
+ 20  OR     REGEXP_LIKE(item_subtitle,'^PG-13 Full Screen Edition.*$','i')
+ 21  OR     REGEXP_LIKE(item_subtitle,'^Unrated Extended Cut.*$','i');
+
+50 rows updated.
+
+SQL> 
+SQL> SET SERVEROUTPUT ON SIZE UNLIMITED
+SQL> 
+SQL> /* Add Blu-ray, HD, and SD. */
+SQL> DECLARE
+  2    /* Declare local variable. */
+  3    lv_item_barcode	VARCHAR2(20);
+  4    lv_item_type	NUMBER;
+  5    lv_release_date	DATE;
+  6  
+  7    /* Declare who-audit constants. */
+  8    lv_user_id	 NUMBER := 1;
+  9    lv_creation_date  DATE := TRUNC(SYSDATE);
+ 10  
+ 11    /* Declare a collection of titles. */
+ 12    lv_item_title_tab  ITEM_TITLE_TAB := item_title_tab();
+ 13  
+ 14    /* Declare new barcode cursor. */
+ 15    CURSOR update_barcode
+ 16    ( cv_title	 VARCHAR2
+ 17    , cv_subtitle  VARCHAR2 ) IS
+ 18  	 SELECT DISTINCT
+ 19  		REGEXP_REPLACE(i.item_barcode,'B0','B1',1,1) AS barcode
+ 20  	 ,	i.item_type
+ 21  	 ,	i.item_release_date
+ 22  	 FROM	item i
+ 23  	 WHERE	i.item_title = cv_title
+ 24  	 AND	NVL(i.item_subtitle,'x') = NVL(cv_subtitle,'x');
+ 25  
+ 26    /* Declare item type cursor. */
+ 27    CURSOR item_type
+ 28    ( cv_lookup_table   VARCHAR2
+ 29    , cv_lookup_column  VARCHAR2 ) IS
+ 30  	 SELECT cl.common_lookup_id
+ 31  	 FROM	common_lookup cl
+ 32  	 WHERE	common_lookup_table = cv_lookup_table
+ 33  	 AND	common_lookup_column = cv_lookup_column
+ 34  	 AND	common_lookup_type IN ('BLU-RAY','HD','SD','DVD');
+ 35  
+ 36    /* Declare film cursor. */
+ 37    CURSOR item_title_cur IS
+ 38  	 SELECT DISTINCT
+ 39  		item_title
+ 40  	 ,	item_subtitle
+ 41  	 ,	item_rating
+ 42  	 FROM	item
+ 43  	 WHERE	item_type IN (SELECT common_lookup_id
+ 44  			      FROM   common_lookup
+ 45  			      WHERE  common_lookup_table = 'ITEM'
+ 46  			      AND    common_lookup_column = 'ITEM_TYPE'
+ 47  			      AND    common_lookup_type IN
+ 48  				       ('DVD_FULL_SCREEN'
+ 49  				       ,'DVD_WIDE_SCREEN'
+ 50  				       ,'VHS_SINGLE_TAPE'
+ 51  				       ,'VHS_DOUBLE_TAPE'));
+ 52  
+ 53  BEGIN
+ 54    /* Read list of distinct item titles. */
+ 55    FOR i IN item_title_cur LOOP
+ 56  	 lv_item_title_tab.EXTEND;
+ 57  	 lv_item_title_tab(lv_item_title_tab.COUNT) :=
+ 58  	   item_title_obj( i.item_title
+ 59  			 , i.item_subtitle
+ 60  			 , i.item_rating );
+ 61    END LOOP;
+ 62  
+ 63    FOR i IN 1..lv_item_title_tab.COUNT LOOP
+ 64  	 /* Generate a new barcode value. */
+ 65  	 FOR j IN update_barcode( lv_item_title_tab(i).title
+ 66  				, lv_item_title_tab(i).subtitle ) LOOP
+ 67  	   lv_item_barcode := j.barcode;
+ 68  	   lv_item_type := j.item_type;
+ 69  	   lv_release_date := j.item_release_date;
+ 70  	 END LOOP;
+ 71  
+ 72  	 /* Read through the item types. */
+ 73  	 FOR j IN item_type ('ITEM','ITEM_TYPE') LOOP
+ 74  
+ 75  	   /* Insert into the item table. */
+ 76  	   INSERT
+ 77  	   INTO   item
+ 78  	   ( item_id
+ 79  	   , item_barcode
+ 80  	   , item_type
+ 81  	   , item_title
+ 82  	   , item_subtitle
+ 83  	   , item_desc
+ 84  	   , item_release_date
+ 85  	   , item_rating
+ 86  	   , item_rating_agency
+ 87  	   , created_by
+ 88  	   , creation_date
+ 89  	   , last_updated_by
+ 90  	   , last_update_date )
+ 91  	   VALUES
+ 92  	   ( item_s1.NEXTVAL
+ 93  	   , lv_item_barcode
+ 94  	   , j.common_lookup_id
+ 95  	   , lv_item_title_tab(i).title
+ 96  	   , lv_item_title_tab(i).subtitle
+ 97  	   , EMPTY_CLOB()
+ 98  	   , lv_release_date
+ 99  	   , lv_item_title_tab(i).rating
+100  	   ,'MPAA'
+101  	   , lv_user_id
+102  	   , lv_creation_date
+103  	   , lv_user_id
+104  	   , lv_creation_date );
+105  
+106  	 END LOOP;
+107    END LOOP;
+108  
+109    /* Commit the write. */
+110    COMMIT;
+111  END;
+112  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> /* Query the results after the insert to the item table. */
+SQL> COL TYPE  FORMAT A20
+SQL> COL total FORMAT 99999
+SQL> SELECT   cl.common_lookup_meaning AS TYPE
+  2  ,	      COUNT(i.item_type) AS total
+  3  FROM     item i INNER JOIN common_lookup cl
+  4  ON       i.item_type = cl.common_lookup_id
+  5  GROUP BY cl.common_lookup_meaning;
+
+TYPE                  TOTAL                                                     
+-------------------- ------                                                     
+DVD                      45                                                     
+DVD: Full Screen         26                                                     
+PlayStation2              3                                                     
+Blu-ray                  45                                                     
+Digital SD               45                                                     
+Digital HD               45                                                     
+DVD: Wide Screen         57                                                     
+Nintendo GameCube         3                                                     
+XBOX                      4                                                     
+
+9 rows selected.
+
+SQL> 
+SQL> /* Display rating_agency table and rating_agency_s sequence, which should be none
+SQL> 	because of the cleanup.sql script. */
+SQL> COL object_name FORMAT A30 HEADING "Object Name"
+SQL> COL object_type FORMAT A30 HEADING "Object Type"
+SQL> SELECT   object_name
+  2  ,	      object_type
+  3  FROM     user_objects
+  4  WHERE    REGEXP_LIKE(object_name,'^rating_agency.*$','i')
+  5  ORDER BY 2 DESC;
+
+no rows selected
+
+SQL> 
+SQL> /* Conditionally drop table and sequence. */
+SQL> BEGIN
+  2    FOR i IN (SELECT   object_name
+  3  		 ,	  object_type
+  4  		 FROM	  user_objects
+  5  		 WHERE	  REGEXP_LIKE(object_name,'^rating_agency.*$','i')
+  6  		 ORDER BY 2 DESC) LOOP
+  7  	 IF i.object_type = 'TABLE' THEN
+  8  	   EXECUTE IMMEDIATE 'DROP TABLE '||i.object_name||' CASCADE CONSTRAINTS';
+  9  	 ELSE
+ 10  	   EXECUTE IMMEDIATE 'DROP SEQUENCE '||i.object_name;
+ 11  	 END IF;
+ 12    END LOOP;
+ 13  END;
+ 14  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> /* Create new sequence. */
+SQL> CREATE SEQUENCE rating_agency_s START WITH 1001;
+
+Sequence created.
+
+SQL> 
+SQL> /* Create new table. */
+SQL> CREATE TABLE rating_agency AS
+  2    SELECT rating_agency_s.NEXTVAL AS rating_agency_id
+  3    ,      il.item_rating AS rating
+  4    ,      il.rating_meaning
+  5    ,      il.item_rating_agency AS rating_agency
+  6    ,      il.rating_agency_meaning
+  7    FROM  (SELECT DISTINCT
+  8  		     i.item_rating
+  9  	      ,      cl.common_lookup_meaning AS rating_meaning
+ 10  	      ,      i.item_rating_agency
+ 11  	      ,      cl.common_lookup_meaning AS rating_agency_meaning
+ 12  	      FROM   item i INNER JOIN common_lookup cl
+ 13  	      ON     i.item_rating_agency = cl.common_lookup_type
+ 14  	      WHERE  cl.common_lookup_table = 'ITEM'
+ 15  	      AND    cl.common_lookup_column = 'ITEM_RATING_AGENCY') il;
+
+Table created.
+
+SQL> 
+SQL> /* Fix data incongruency in common lookup table. */
+SQL> UPDATE common_lookup cl
+  2  SET    cl.common_lookup_code = 'EC'
+  3  WHERE  cl.common_lookup_table = 'ITEM'
+  4  AND    cl.common_lookup_column = 'ITEM_RATING'
+  5  AND    cl.common_lookup_type = 'ESRB EC';
+
+1 row updated.
+
+SQL> 
+SQL> /* Add missing rating. */
+SQL> INSERT
+  2  INTO   rating_agency
+  3  SELECT rating_agency_s.NEXTVAL
+  4  ,	    cl1.common_lookup_code
+  5  ,	    cl1.common_lookup_meaning
+  6  ,	    cl2.common_lookup_type
+  7  ,	    cl2.common_lookup_meaning
+  8  FROM   common_lookup cl1 CROSS JOIN common_lookup cl2
+  9  WHERE  cl1.common_lookup_table = 'ITEM'
+ 10  AND    cl1.common_lookup_column = 'ITEM_RATING'
+ 11  AND    cl1.common_lookup_code = 'EC'
+ 12  AND    cl2.common_lookup_table = 'ITEM'
+ 13  AND    cl2.common_lookup_column = 'ITEM_RATING_AGENCY'
+ 14  AND    cl2.common_lookup_code = 'ESRB';
+
+1 row created.
+
+SQL> 
+SQL> /* Add missing rating. */
+SQL> INSERT
+  2  INTO   rating_agency
+  3  SELECT rating_agency_s.NEXTVAL
+  4  ,	    cl1.common_lookup_code
+  5  ,	    cl1.common_lookup_meaning
+  6  ,	    cl2.common_lookup_type
+  7  ,	    cl2.common_lookup_meaning
+  8  FROM   common_lookup cl1 CROSS JOIN common_lookup cl2
+  9  WHERE  cl1.common_lookup_table = 'ITEM'
+ 10  AND    cl1.common_lookup_column = 'ITEM_RATING'
+ 11  AND    cl1.common_lookup_code = 'E'
+ 12  AND    cl2.common_lookup_table = 'ITEM'
+ 13  AND    cl2.common_lookup_column = 'ITEM_RATING_AGENCY'
+ 14  AND    cl2.common_lookup_code = 'ESRB';
+
+1 row created.
+
+SQL> 
+SQL> UPDATE rating_agency ra
+  2  SET    ra.rating_agency_meaning =
+  3  	      (SELECT cl.common_lookup_meaning
+  4  	       FROM   common_lookup cl
+  5  	       WHERE  cl.common_lookup_table = 'ITEM'
+  6  	       AND    cl.common_lookup_column = 'ITEM_RATING_AGENCY'
+  7  	       AND    ra.rating_agency = cl.common_lookup_type);
+
+8 rows updated.
+
+SQL> 
+SQL> UPDATE rating_agency ra
+  2  SET    ra.rating_meaning =
+  3  	      (SELECT cl.common_lookup_meaning
+  4  	       FROM   common_lookup cl
+  5  	       WHERE  cl.common_lookup_table = 'ITEM'
+  6  	       AND    cl.common_lookup_column = 'ITEM_RATING'
+  7  	       AND    ra.rating = cl.common_lookup_code);
+
+8 rows updated.
+
+SQL> 
+SQL> /* Add a foreign key to table created by query. */
+SQL> ALTER TABLE rating_agency
+  2    ADD CONSTRAINT pk_rating_agency PRIMARY KEY (rating_agency_id);
+
+Table altered.
+
+SQL> 
+SQL> /* Describe the item table before changes. */
+SQL> DESC item
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ ITEM_ID                                   NOT NULL NUMBER
+ ITEM_BARCODE                              NOT NULL VARCHAR2(20)
+ ITEM_TYPE                                 NOT NULL NUMBER
+ ITEM_TITLE                                NOT NULL VARCHAR2(60)
+ ITEM_SUBTITLE                                      VARCHAR2(60)
+ ITEM_DESC                                 NOT NULL CLOB
+ ITEM_PHOTO                                         BINARY FILE LOB
+ ITEM_RATING                               NOT NULL VARCHAR2(8)
+ ITEM_RATING_AGENCY                        NOT NULL VARCHAR2(4)
+ ITEM_RELEASE_DATE                         NOT NULL DATE
+ CREATED_BY                                NOT NULL NUMBER
+ CREATION_DATE                             NOT NULL DATE
+ LAST_UPDATED_BY                           NOT NULL NUMBER
+ LAST_UPDATE_DATE                          NOT NULL DATE
+
+SQL> 
+SQL> /* Add column to table. */
+SQL> ALTER TABLE item
+  2    ADD (rating_agency_id NUMBER);
+
+Table altered.
+
+SQL> 
+SQL> /* Describe the item table after adding the column. */
+SQL> DESC item
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ ITEM_ID                                   NOT NULL NUMBER
+ ITEM_BARCODE                              NOT NULL VARCHAR2(20)
+ ITEM_TYPE                                 NOT NULL NUMBER
+ ITEM_TITLE                                NOT NULL VARCHAR2(60)
+ ITEM_SUBTITLE                                      VARCHAR2(60)
+ ITEM_DESC                                 NOT NULL CLOB
+ ITEM_PHOTO                                         BINARY FILE LOB
+ ITEM_RATING                               NOT NULL VARCHAR2(8)
+ ITEM_RATING_AGENCY                        NOT NULL VARCHAR2(4)
+ ITEM_RELEASE_DATE                         NOT NULL DATE
+ CREATED_BY                                NOT NULL NUMBER
+ CREATION_DATE                             NOT NULL DATE
+ LAST_UPDATED_BY                           NOT NULL NUMBER
+ LAST_UPDATE_DATE                          NOT NULL DATE
+ RATING_AGENCY_ID                                   NUMBER
+
+SQL> 
+SQL> /* Add foreign key column. */
+SQL> ALTER TABLE item
+  2    ADD CONSTRAINT fk_item_4 FOREIGN KEY (rating_agency_id)
+  3  	   REFERENCES rating_agency(rating_agency_id);
+
+Table altered.
+
+SQL> 
+SQL> /* Display rating_agency table and rating_agency_s sequence after creation. */
+SQL> COL object_name FORMAT A30 HEADING "Object Name"
+SQL> COL object_type FORMAT A30 HEADING "Object Type"
+SQL> SELECT   object_name
+  2  ,	      object_type
+  3  FROM     user_objects
+  4  WHERE    REGEXP_LIKE(object_name,'^rating_agency.*$','i')
+  5  ORDER BY 2 DESC;
+
+Object Name                    Object Type                                      
+------------------------------ ------------------------------                   
+RATING_AGENCY                  TABLE                                            
+RATING_AGENCY_S                SEQUENCE                                         
+
+2 rows selected.
+
+SQL> 
+SQL> /* Add the foreign keys that match the RATING_AGENCY table. */
+SQL> UPDATE item i
+  2  SET    rating_agency_id = (SELECT ra.rating_agency_id
+  3  				FROM   rating_agency ra
+  4  				WHERE  ra.rating = i.item_rating
+  5  				AND    ra.rating_agency = i.item_rating_agency);
+
+273 rows updated.
+
+SQL> 
+SQL> /* Query results from new rating_agency_id column. */
+SQL> COL rating_agency_id FORMAT 9999 HEADING "Rating|Agency|ID #"
+SQL> COL rating 	  FORMAT A8   HEADING "Rating"
+SQL> COL rating_agency	  FORMAT A8   HEADING "Rating|Agency"
+SQL> COL rating_meaning   FORMAT A40  HEADING "Rating Meaning"
+SQL> SELECT   DISTINCT
+  2  	      ra.rating_agency_id
+  3  ,	      i.item_rating AS rating
+  4  ,	      i.item_rating_agency AS rating_agency
+  5  ,	      cl.common_lookup_meaning AS rating_meaning
+  6  FROM     rating_agency ra INNER JOIN item i
+  7  ON       ra.rating = i.item_rating
+  8  AND      ra.rating_agency = i.item_rating_agency INNER JOIN common_lookup cl
+  9  ON       cl.common_lookup_type = i.item_rating_agency
+ 10  WHERE    cl.common_lookup_table = 'ITEM'
+ 11  AND      cl.common_lookup_column = 'ITEM_RATING_AGENCY'
+ 12  ORDER BY 3, 2;
+
+Rating                                                                          
+Agency          Rating                                                          
+  ID # Rating   Agency   Rating Meaning                                         
+------ -------- -------- ----------------------------------------               
+  1006 E10+     ESRB     Entertainment Software Rating Board                    
+  1004 T        ESRB     Entertainment Software Rating Board                    
+  1002 G        MPAA     Motion Picture Association of America                  
+  1005 PG       MPAA     Motion Picture Association of America                  
+  1001 PG-13    MPAA     Motion Picture Association of America                  
+  1003 R        MPAA     Motion Picture Association of America                  
+
+6 rows selected.
+
+SQL> 
+SQL> /* Remove column to table. */
+SQL> ALTER TABLE item
+  2    DROP COLUMN item_rating;
+
+Table altered.
+
+SQL> 
+SQL> ALTER TABLE item
+  2    DROP COLUMN item_rating_agency;
+
+Table altered.
+
+SQL> 
+SQL> /* Query results from new rating_agency_id column. */
+SQL> COL rating_agency_id	 FORMAT 9999 HEADING "Rating|Agency|ID #"
+SQL> COL rating 		 FORMAT A6   HEADING "Rating"
+SQL> COL rating_meaning 	 FORMAT A14  HEADING "Rating Meaning"
+SQL> COL rating_agency		 FORMAT A8   HEADING "Rating|Agency"
+SQL> COL rating_agency_meaning	 FORMAT A40  HEADING "Rating Agency Meaning"
+SQL> SELECT   DISTINCT
+  2  	      ra.rating_agency_id
+  3  ,	      ra.rating
+  4  ,	      SUBSTR(REGEXP_SUBSTR(ra.rating_meaning,'\s[A-Za-z].*$',1,1),2,14) AS rating_meaning
+  5  ,	      ra.rating_agency
+  6  ,	      ra.rating_agency_meaning
+  7  FROM     rating_agency ra LEFT JOIN item i
+  8  ON       ra.rating_agency_id = i.rating_agency_id
+  9  ORDER BY CASE
+ 10  		WHEN ra.rating = 'EC'	 THEN 1
+ 11  		WHEN ra.rating = 'E'	 THEN 2
+ 12  		WHEN ra.rating = 'E10+'  THEN 3
+ 13  		WHEN ra.rating = 'T'	 THEN 4
+ 14  		WHEN ra.rating = 'G'	 THEN 5
+ 15  		WHEN ra.rating = 'PG'	 THEN 6
+ 16  		WHEN ra.rating = 'PG-13' THEN 7
+ 17  		WHEN ra.rating = 'R'	 THEN 8
+ 18  	      END;
+
+Rating                                                                          
+Agency                       Rating                                             
+  ID # Rating Rating Meaning Agency   Rating Agency Meaning                     
+------ ------ -------------- -------- ----------------------------------------  
+  1007 EC     Early Childhoo ESRB     Entertainment Software Rating Board       
+  1008 E      Everyone: Cont ESRB     Entertainment Software Rating Board       
+  1006 E10+   Everyone 10+:  ESRB     Entertainment Software Rating Board       
+  1004 T      Teen: Contains ESRB     Entertainment Software Rating Board       
+  1002 G      General Audien MPAA     Motion Picture Association of America     
+  1005 PG     Parental guida MPAA     Motion Picture Association of America     
+  1001 PG-13  Parents strong MPAA     Motion Picture Association of America     
+  1003 R      Restricted: Un MPAA     Motion Picture Association of America     
+
+8 rows selected.
+
+SQL> 
+SQL> /* Alter the rating_agency_id column and make it not null. */
+SQL> ALTER TABLE item
+  2    MODIFY (rating_agency_id NUMBER CONSTRAINT nn_item_12 NOT NULL);
+
+Table altered.
+
+SQL> 
+SQL> /* Describe the item table after adding a not null constraint. */
+SQL> DESC item
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ ITEM_ID                                   NOT NULL NUMBER
+ ITEM_BARCODE                              NOT NULL VARCHAR2(20)
+ ITEM_TYPE                                 NOT NULL NUMBER
+ ITEM_TITLE                                NOT NULL VARCHAR2(60)
+ ITEM_SUBTITLE                                      VARCHAR2(60)
+ ITEM_DESC                                 NOT NULL CLOB
+ ITEM_PHOTO                                         BINARY FILE LOB
+ ITEM_RELEASE_DATE                         NOT NULL DATE
+ CREATED_BY                                NOT NULL NUMBER
+ CREATION_DATE                             NOT NULL DATE
+ LAST_UPDATED_BY                           NOT NULL NUMBER
+ LAST_UPDATE_DATE                          NOT NULL DATE
+ RATING_AGENCY_ID                          NOT NULL NUMBER
+
+SQL> 
+SQL> /* Add the temporal activity missing columns. */
+SQL> ALTER TABLE common_lookup
+  2    ADD (begin_date	DATE)
+  3    ADD (end_date	DATE);
+
+Table altered.
+
+SQL> 
+SQL> /* Set store opening as default begin date. */
+SQL> UPDATE  common_lookup
+  2  SET     begin_date = '01-JAN-2001'
+  3  WHERE  (common_lookup_table = 'ITEM'
+  4  AND     common_lookup_column = 'ITEM_TYPE'
+  5  AND     common_lookup_type NOT IN ('BLU-RAY','HD','SD','DVD'))
+  6  OR NOT (common_lookup_table = 'ITEM'
+  7  AND     common_lookup_column = 'ITEM_TYPE');
+
+49 rows updated.
+
+SQL> 
+SQL> /* Set store opening as secondary default begin date. */
+SQL> UPDATE common_lookup
+  2  SET    begin_date = TRUNC(SYSDATE)
+  3  WHERE  common_lookup_table = 'ITEM'
+  4  AND    common_lookup_column = 'ITEM_TYPE'
+  5  AND    common_lookup_type IN ('BLU-RAY','HD','SD','DVD');
+
+4 rows updated.
+
+SQL> 
+SQL> /* Set end date on various DVD and VHS formats. */
+SQL> UPDATE common_lookup cl
+  2  SET    cl.end_date = TRUNC(SYSDATE) - 1
+  3  WHERE  cl.common_lookup_table = 'ITEM'
+  4  AND    cl.common_lookup_column = 'ITEM_TYPE'
+  5  AND    REGEXP_LIKE(cl.common_lookup_type,'^(DVD|VHS).+$','i');
+
+4 rows updated.
+
+SQL> 
+SQL> /* Obsolete common lookup value for the ITEM table. */
+SQL> UPDATE common_lookup
+  2  SET    end_date = TRUNC(SYSDATE) - 1
+  3  WHERE  common_lookup_table = 'ITEM'
+  4  AND    common_lookup_column IN ('ITEM_RATING','ITEM_RATING_AGENCY');
+
+15 rows updated.
+
+SQL> 
+SQL> /* Conditionally drop the NC_ERROR table and NC_ERROR_S1 sequence. */
+SQL> BEGIN
+  2    FOR i IN (SELECT   object_name
+  3  		 ,	  object_type
+  4  		 FROM	  user_objects
+  5  		 WHERE	  REGEXP_LIKE(object_name,'^nc_error.*$','i')
+  6  		 ORDER BY 2 DESC) LOOP
+  7  	 IF i.object_type = 'TABLE' THEN
+  8  	   EXECUTE IMMEDIATE 'DROP TABLE '||i.object_name||' CASCADE CONSTRAINTS';
+  9  	 ELSE
+ 10  	   EXECUTE IMMEDIATE 'DROP SEQUENCE '||i.object_name;
+ 11  	 END IF;
+ 12    END LOOP;
+ 13  END;
+ 14  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> /* Create the NC_ERROR table. */
+SQL> CREATE TABLE nc_error
+  2  ( error_id 	   NUMBER	  CONSTRAINT pk_nce   PRIMARY KEY
+  3  , object_name	   VARCHAR2(30)   CONSTRAINT nn_nce_1 NOT NULL
+  4  , module_name	   VARCHAR2(30)
+  5  , class_name	   VARCHAR2(30)
+  6  , sqlerror_code	   VARCHAR2(9)
+  7  , sqlerror_message    VARCHAR2(2000)
+  8  , user_error_message  VARCHAR2(2000)
+  9  , last_updated_by	   NUMBER	  CONSTRAINT nn_nce_2 NOT NULL
+ 10  , last_update_date    DATE 	  CONSTRAINT nn_nce_3 NOT NULL
+ 11  , created_by	   NUMBER	  CONSTRAINT nn_nce_4 NOT NULL
+ 12  , creation_date	   DATE 	  CONSTRAINT nn_nce_5 NOT NULL);
+
+Table created.
+
+SQL> 
+SQL> /* Create the NC_ERROR_S1 sequence. */
+SQL> CREATE SEQUENCE nc_error_s1;
+
+Sequence created.
+
+SQL> 
+SQL> 
+SQL> /* Conditionally drop the common lookup types, table and then objectWHERE. */
+SQL> BEGIN
+  2    FOR i IN (SELECT   object_name
+  3  		 FROM	  user_objects
+  4  		 WHERE	  object_name = 'RECORD_ERRORS') LOOP
+  5  	 EXECUTE IMMEDIATE 'DROP PROCEDURE '||i.object_name;
+  6    END LOOP;
+  7  END;
+  8  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> /* Create procedure to record reported errors. */
+SQL> CREATE OR REPLACE PROCEDURE record_errors
+  2  ( object_name	     IN        VARCHAR2
+  3  , module_name	     IN        VARCHAR2 := NULL
+  4  , class_name	     IN        VARCHAR2 := NULL
+  5  , sqlerror_code	     IN        VARCHAR2 := NULL
+  6  , sqlerror_message      IN        VARCHAR2 := NULL
+  7  , user_error_message    IN        VARCHAR2 := NULL ) IS
+  8  
+  9    /* Declare anchored record variable. */
+ 10    nc_error_record NC_ERROR%ROWTYPE;
+ 11  
+ 12    /* Set procedure to be autonomous. */
+ 13    PRAGMA AUTONOMOUS_TRANSACTION;
+ 14  
+ 15  BEGIN
+ 16    /* Substitute actual parameters for default values. */
+ 17    IF object_name IS NOT NULL THEN
+ 18  	 nc_error_record.object_name := object_name;
+ 19    END IF;
+ 20    IF module_name IS NOT NULL THEN
+ 21  	 nc_error_record.module_name := module_name;
+ 22    END IF;
+ 23    IF sqlerror_code IS NOT NULL THEN
+ 24  	 nc_error_record.sqlerror_code := sqlerror_code;
+ 25    END IF;
+ 26    IF sqlerror_message IS NOT NULL THEN
+ 27  	 nc_error_record.sqlerror_message := sqlerror_message;
+ 28    END IF;
+ 29    IF user_error_message IS NOT NULL THEN
+ 30  	 nc_error_record.user_error_message := user_error_message;
+ 31    END IF;
+ 32  
+ 33    /* Insert non-critical error record. */
+ 34    INSERT INTO nc_error
+ 35    VALUES
+ 36    ( nc_error_s1.NEXTVAL
+ 37    , nc_error_record.object_name
+ 38    , nc_error_record.module_name
+ 39    , nc_error_record.class_name
+ 40    , nc_error_record.sqlerror_code
+ 41    , nc_error_record.sqlerror_message
+ 42    , nc_error_record.user_error_message
+ 43    , 2
+ 44    , SYSDATE
+ 45    , 2
+ 46    , SYSDATE);
+ 47  
+ 48    /* Write to logging table. */
+ 49    COMMIT;
+ 50  
+ 51  EXCEPTION
+ 52    WHEN OTHERS THEN
+ 53  	 RETURN;
+ 54  END;
+ 55  /
+
+Procedure created.
+
+SQL> 
+SQL> /* Anonymous program. */
+SQL> BEGIN
+  2    /* Test record_errors procedure. */
+  3    record_errors( object_name => 'Test Object'
+  4  		    , module_name => 'Test Module'
+  5  		    , class_name => 'Test Class'
+  6  		    , sqlerror_code => 'ORA-00001'
+  7  		    , sqlerror_message => 'ORA-00001: User Error');
+  8  END;
+  9  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> /* Query test results. */
+SQL> SELECT ne.object_name
+  2  ,	    ne.module_name
+  3  ,	    ne.sqlerror_code
+  4  FROM   nc_error ne;
+
+                                                    Error                       
+Object Name                    Module Name          ID #                        
+------------------------------ -------------------- ----------                  
+Test Object                    Test Module          ORA-00001                   
+
+1 row selected.
+
+SQL> 
+SQL> /* Conditionally drop the insert_item procedure. */
+SQL> BEGIN
+  2    FOR i IN (SELECT   object_name
+  3  		 ,	  object_type
+  4  		 FROM	  user_objects
+  5  		 WHERE	  REGEXP_LIKE(object_name,'^insert_item.*$','i')
+  6  		 ORDER BY 2 DESC) LOOP
+  7  	   EXECUTE IMMEDIATE 'DROP '||i.object_type||' '||i.object_name;
+  8    END LOOP;
+  9  END;
+ 10  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> /* Create draft insert_item procedure. */
+SQL> CREATE PROCEDURE insert_item
+  2  ( pv_item_barcode	      VARCHAR2
+  3  , pv_item_type	      VARCHAR2
+  4  , pv_item_title	      VARCHAR2
+  5  , pv_item_subtitle       VARCHAR2 := NULL
+  6  , pv_item_rating	      VARCHAR2
+  7  , pv_item_rating_agency  VARCHAR2
+  8  , pv_item_release_date   DATE ) IS
+  9  
+ 10    /* Declare local variables. */
+ 11    lv_item_type  NUMBER;
+ 12    lv_rating_id  NUMBER;
+ 13    lv_user_id    NUMBER := 1;
+ 14    lv_date	     DATE := TRUNC(SYSDATE);
+ 15    lv_control    BOOLEAN := FALSE;
+ 16  
+ 17    /* Declare error handling variables. */
+ 18    lv_local_object	VARCHAR2(30) := 'PROCEDURE';
+ 19    lv_local_module	VARCHAR2(30) := 'INSERT_ITEM';
+ 20  
+ 21    /* Declare conversion cursor. */
+ 22    CURSOR item_type_cur
+ 23    ( cv_item_type  VARCHAR2 ) IS
+ 24  	 SELECT common_lookup_id
+ 25  	 FROM	common_lookup
+ 26  	 WHERE	common_lookup_table = 'ITEM'
+ 27  	 AND	common_lookup_column = 'ITEM_TYPE'
+ 28  	 AND	common_lookup_type = cv_item_type;
+ 29  
+ 30    /* Declare conversion cursor. */
+ 31    CURSOR rating_cur
+ 32    ( cv_rating	   VARCHAR2
+ 33    , cv_rating_agency  VARCHAR2 ) IS
+ 34  	 SELECT rating_agency_id
+ 35  	 FROM	rating_agency
+ 36  	 WHERE	rating = cv_rating
+ 37  	 AND	rating_agency = cv_rating_agency;
+ 38  
+ 39    /*
+ 40  	  Enforce logic validation that the rating, rating agency and
+ 41  	  media type match. This is a user-configuration area and they
+ 42  	  may need to add validation code for new materials here.
+ 43    */
+ 44    CURSOR match_media_to_rating
+ 45    ( cv_item_type  NUMBER
+ 46    , cv_rating_id  NUMBER ) IS
+ 47  	 SELECT  NULL
+ 48  	 FROM	 common_lookup cl CROSS JOIN rating_agency ra
+ 49  	 WHERE	 common_lookup_id = cv_item_type
+ 50  	 AND	(common_lookup_type IN ('BLU-RAY','DVD','HD','SD')
+ 51  	 AND	 rating_agency_id = cv_rating_id
+ 52  	 AND	 rating IN ('G','PG','PG-13','R')
+ 53  	 AND	 rating_agency = 'MPAA')
+ 54  	 OR	(common_lookup_type IN ('GAMECUBE','PLAYSTATION','XBOX')
+ 55  	 AND	 rating_agency_id = cv_rating_id
+ 56  	 AND	 rating IN ('C','E','E10+','T')
+ 57  	 AND	 rating_agency = 'ESRB');
+ 58  
+ 59    /* Declare an exception. */
+ 60    e  EXCEPTION;
+ 61    PRAGMA EXCEPTION_INIT(e,-20001);
+ 62  
+ 63    /* Designate as an autonomous program. */
+ 64    PRAGMA AUTONOMOUS_TRANSACTION;
+ 65  
+ 66  BEGIN
+ 67    /* Get the foreign key of an item type. */
+ 68    FOR i IN item_type_cur(pv_item_type) LOOP
+ 69  	 lv_item_type := i.common_lookup_id;
+ 70    END LOOP;
+ 71  
+ 72    /* Get the foreign key of a rating. */
+ 73    FOR i IN rating_cur(pv_item_rating, pv_item_rating_agency) LOOP
+ 74  	 lv_rating_id := i.rating_agency_id;
+ 75    END LOOP;
+ 76  
+ 77    /* Only insert when the two foreign key values are set matches. */
+ 78    FOR i IN match_media_to_rating(lv_item_type, lv_rating_id) LOOP
+ 79  
+ 80  	 INSERT
+ 81  	 INTO	item
+ 82  	 ( item_id
+ 83  	 , item_barcode
+ 84  	 , item_type
+ 85  	 , item_title
+ 86  	 , item_subtitle
+ 87  	 , item_desc
+ 88  	 , item_release_date
+ 89  	 , rating_agency_id
+ 90  	 , created_by
+ 91  	 , creation_date
+ 92  	 , last_updated_by
+ 93  	 , last_update_date )
+ 94  	 VALUES
+ 95  	 ( item_s1.NEXTVAL
+ 96  	 , pv_item_barcode
+ 97  	 , lv_item_type
+ 98  	 , pv_item_title
+ 99  	 , pv_item_subtitle
+100  	 , EMPTY_CLOB()
+101  	 , pv_item_release_date
+102  	 , lv_rating_id
+103  	 , lv_user_id
+104  	 , lv_date
+105  	 , lv_user_id
+106  	 , lv_date );
+107  
+108  	 /* Set control to true. */
+109  	 lv_control := TRUE;
+110  
+111  	 /* Commmit the record. */
+112  	 COMMIT;
+113  
+114    END LOOP;
+115  
+116    /* Raise an exception when required. */
+117    IF NOT lv_control THEN
+118  	 RAISE e;
+119    END IF;
+120  
+121  EXCEPTION
+122    WHEN OTHERS THEN
+123  	 record_errors( object_name => lv_local_object
+124  		      , module_name => lv_local_module
+125  		      , sqlerror_code => 'ORA'||SQLCODE
+126  		      , sqlerror_message => SQLERRM
+127  		      , user_error_message => DBMS_UTILITY.FORMAT_ERROR_BACKTRACE );
+128  	 RAISE;
+129  END;
+130  /
+
+Procedure created.
+
+SQL> 
+SQL> /* Enable serveroutput. */
+SQL> SET SERVEROUTPUT ON SIZE UNLIMITED
+SQL> 
+SQL> /* Call the insert_item procedure. */
+SQL> BEGIN
+  2    insert_item( pv_item_barcode => 'B01IOHVPA8'
+  3  		  , pv_item_type => 'DVD'
+  4  		  , pv_item_title => 'Jason Bourne'
+  5  		  , pv_item_rating => 'PG-13'
+  6  		  , pv_item_rating_agency => 'MPAA'
+  7  		  , pv_item_release_date => '06-DEC-2016');
+  8  END;
+  9  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> /* Query result from the insert_item procedure. */
+SQL> COL item_barcode FORMAT A10 HEADING "Item|Barcode"
+SQL> COL item_title   FORMAT A30 HEADING "Item Title"
+SQL> COL release_date FORMAT A12 HEADING "Item|Release|Date"
+SQL> SELECT i.item_barcode
+  2  ,	    i.item_title
+  3  ,	    i.item_release_date AS release_date
+  4  FROM   item i
+  5  WHERE  i.item_title = 'Jason Bourne';
+
+                                          Item                                  
+Item                                      Release                               
+Barcode    Item Title                     Date                                  
+---------- ------------------------------ ------------                          
+B01IOHVPA8 Jason Bourne                   06-DEC-16                             
+
+1 row selected.
+
+SQL> 
+SQL> 
+SQL> /* Conditionally drop the common lookup types, table and then objectWHERE. */
+SQL> BEGIN
+  2    FOR i IN (SELECT   type_name
+  3  		 FROM	  user_types
+  4  		 WHERE	  type_name IN ('ITEM_OBJ','ITEM_TAB')
+  5  		 ORDER BY 1 DESC) LOOP
+  6  	 EXECUTE IMMEDIATE 'DROP TYPE '||i.type_name;
+  7    END LOOP;
+  8  END;
+  9  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> /* Create an item object type. */
+SQL> CREATE OR REPLACE
+  2    TYPE item_obj IS OBJECT
+  3    ( item_barcode	     VARCHAR2(20)
+  4    , item_type	     VARCHAR2(7)
+  5    , item_title	     VARCHAR2(60)
+  6    , item_subtitle	     VARCHAR2(60)
+  7    , item_rating	     VARCHAR2(8)
+  8    , item_rating_agency  VARCHAR2(4)
+  9    , item_release_date   DATE );
+ 10  /
+
+Type created.
+
+SQL> 
+SQL> CREATE OR REPLACE
+  2    TYPE item_tab IS TABLE OF item_obj;
+  3  /
+
+Type created.
+
+SQL> 
+SQL> /* Conditionally drop the common lookup types, table and then objectWHERE. */
+SQL> BEGIN
+  2    FOR i IN (SELECT   object_name
+  3  		 FROM	  user_objects
+  4  		 WHERE	  object_name = 'INSERT_ITEMS') LOOP
+  5  	 EXECUTE IMMEDIATE 'DROP PROCEDURE '||i.object_name;
+  6    END LOOP;
+  7  END;
+  8  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> /* Create draft insert_items procedure. */
+SQL> CREATE PROCEDURE insert_items
+  2  ( pv_items  ITEM_TAB ) IS
+  3  
+  4  BEGIN
+  5    /* Read the list of items and call the insert_item procedure. */
+  6    FOR i IN 1..pv_items.COUNT LOOP
+  7  	 insert_item( pv_item_barcode => pv_items(i).item_barcode
+  8  		    , pv_item_type => pv_items(i).item_type
+  9  		    , pv_item_title => pv_items(i).item_title
+ 10  		    , pv_item_subtitle => pv_items(i).item_subtitle
+ 11  		    , pv_item_rating => pv_items(i).item_rating
+ 12  		    , pv_item_rating_agency => pv_items(i).item_rating_agency
+ 13  		    , pv_item_release_date => pv_items(i).item_release_date );
+ 14    END LOOP;
+ 15  END;
+ 16  /
+
+Procedure created.
+
+SQL> 
+SQL> 
+SQL> /* Create draft insert_item procedure. */
+SQL> DECLARE
+  2    /* Create a collection. */
+  3    lv_items  ITEM_TAB :=
+  4  	 item_tab(
+  5  	     item_obj( item_barcode => 'B002ZHKZCO'
+  6  		     , item_type => 'BLU-RAY'
+  7  		     , item_title => 'The Bourne Identity'
+  8  		     , item_subtitle => NULL
+  9  		     , item_rating => 'PG-13'
+ 10  		     , item_rating_agency => 'MPAA'
+ 11  		     , item_release_date => '19-JAN-2010')
+ 12  	   , item_obj( item_barcode => 'B0068FZ18C'
+ 13  		     , item_type => 'BLU-RAY'
+ 14  		     , item_title => 'The Bourne Supremacy'
+ 15  		     , item_subtitle => NULL
+ 16  		     , item_rating => 'PG-13'
+ 17  		     , item_rating_agency => 'MPAA'
+ 18  		     , item_release_date => '10-JAN-2012')
+ 19  	   , item_obj( item_barcode => 'B00AIZK85E'
+ 20  		     , item_type => 'BLU-RAY'
+ 21  		     , item_title => 'The Bourne Ultimatum'
+ 22  		     , item_subtitle => NULL
+ 23  		     , item_rating => 'PG-13'
+ 24  		     , item_rating_agency => 'MPAA'
+ 25  		     , item_release_date => '11-DEC-2012')
+ 26  	   , item_obj( item_barcode => 'B01AT251XY'
+ 27  		     , item_type => 'BLU-RAY'
+ 28  		     , item_title => 'The Bourne Legacy'
+ 29  		     , item_subtitle => NULL
+ 30  		     , item_rating => 'PG-13'
+ 31  		     , item_rating_agency => 'MPAA'
+ 32  		     , item_release_date => '05-APR-2016'));
+ 33  BEGIN
+ 34    /* Call a element processing procedure. */
+ 35    insert_items(lv_items);
+ 36  END;
+ 37  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> /* Query result from the insert_item procedure. */
+SQL> COL item_barcode FORMAT A10 HEADING "Item|Barcode"
+SQL> COL item_title   FORMAT A30 HEADING "Item Title"
+SQL> COL release_date FORMAT A12 HEADING "Item|Release|Date"
+SQL> SELECT   i.item_barcode
+  2  ,	      i.item_title
+  3  ,	      i.item_release_date AS release_date
+  4  FROM     item i
+  5  WHERE    REGEXP_LIKE(i.item_title,'^.*bourne.*$','i')
+  6  ORDER BY i.item_release_date;
+
+                                          Item                                  
+Item                                      Release                               
+Barcode    Item Title                     Date                                  
+---------- ------------------------------ ------------                          
+B002ZHKZCO The Bourne Identity            19-JAN-10                             
+B0068FZ18C The Bourne Supremacy           10-JAN-12                             
+B00AIZK85E The Bourne Ultimatum           11-DEC-12                             
+B01AT251XY The Bourne Legacy              05-APR-16                             
+B01IOHVPA8 Jason Bourne                   06-DEC-16                             
+
+5 rows selected.
+
+SQL> 
+SQL> -- Close log file.
+SQL> SPOOL OFF
