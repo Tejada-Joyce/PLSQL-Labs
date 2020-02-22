@@ -1255,8 +1255,8 @@ Procedure created.
 PL/SQL procedure successfully completed.
 
 
-Member Contact ACCOUNT                   Member Lookup Lookup                   
-  ID #     #'s NUMBER     Last Name        Type   ID # Type                     
+Member Contact                           Member Lookup Lookup                   
+  ID #     #'s ACCOUNT_NU Last Name        Type   ID # Type                     
 ------ ------- ---------- -------------- ------ ------ ------------             
   1001       2 SJC-000001 Winn             1005   1005 GROUP                    
   1002       2 SJC-000002 Vizquel          1005   1005 GROUP                    

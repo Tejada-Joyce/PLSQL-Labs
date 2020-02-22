@@ -211,10 +211,10 @@ BEGIN
   , lv_creation_date );                          
 
   COMMIT;
--- EXCEPTION 
---   WHEN OTHERS THEN
---     ROLLBACK TO starting_point;
---     RETURN;
+    EXCEPTION 
+      WHEN OTHERS THEN
+        ROLLBACK TO starting_point;
+        RETURN;
 END insert_contact;
 /
 
@@ -420,10 +420,10 @@ BEGIN
   , lv_creation_date );                          
 
   COMMIT;
--- EXCEPTION 
---   WHEN OTHERS THEN
---     ROLLBACK TO starting_point;
---     RETURN;
+    EXCEPTION 
+      WHEN OTHERS THEN
+        ROLLBACK TO starting_point;
+        RETURN;
 END insert_contact;
 /
 
