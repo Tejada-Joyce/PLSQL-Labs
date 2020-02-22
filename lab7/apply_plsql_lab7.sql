@@ -699,5 +699,54 @@ WHERE  c.last_name = 'McDonnell';
 --  Create a contact_obj SQL data type, a contact_tab SQL collection data type, and a get_contact object table function.
 -- ----------------------------------------------------------------------------------------------------------------------
 
+--  Create a contact_obj SQL object type
+CREATE OR REPLACE TYPE contact_obj IS OBJECT
+( first_name     varchar2(20)
+, middle_name    varchar2(20)
+, last_name      varchar2(20));
+/
+
+-- Create a contact_tab SQL collection type
+CREATE OR REPLACE TYPE contact_tab IS TABLE OF contact_obj;
+/
+
+--Create a get_contact object table function
+CREATE OR REPLACE FUNCTION get_contact RETURN CONTACT_TAB IS
+
+   -- Declare a counter variable
+   lv_counter PLS_INTEGER := 1;
+   -- Declare a collection variable (of the contact_tab list)
+   lv_contact_tab CONTACT_TAB := contact_tab();
+   -- Declare a non-parameterized cursor against the contact table
+   CURSOR c IS
+      SELECT first_name, middle_name, last_name
+      FROM contact;
+      
+BEGIN
+ 
+  FOR i IN c LOOP
+    lv_contact_tab.EXTEND;
+ 
+    lv_contact_tab(lv_counter) := contact_obj( i.first_name
+                                             , i.middle_name
+                                             , i.last_name );
+ 
+    lv_counter := lv_counter + 1;
+  END LOOP;
+  
+  RETURN lv_contact_tab;
+END;
+/
+
+--Test function
+SET PAGESIZE 999
+COL full_name FORMAT A24
+SELECT first_name || CASE
+                       WHEN middle_name IS NOT NULL
+                       THEN ' ' || middle_name || ' '
+                       ELSE ' '
+                     END || last_name AS full_name
+FROM   TABLE(get_contact);
+
 -- Close log file.
 SPOOL OFF
