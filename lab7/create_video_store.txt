@@ -1255,8 +1255,8 @@ Procedure created.
 PL/SQL procedure successfully completed.
 
 
-Member Contact ACCOUNT                   Member Lookup Lookup                   
-  ID #     #'s NUMBER     Last Name        Type   ID # Type                     
+Member Contact                           Member Lookup Lookup                   
+  ID #     #'s ACCOUNT_NU Last Name        Type   ID # Type                     
 ------ ------- ---------- -------------- ------ ------ ------------             
   1001       2 SJC-000001 Winn             1005   1005 GROUP                    
   1002       2 SJC-000002 Vizquel          1005   1005 GROUP                    
@@ -1279,32 +1279,32 @@ FULL_NAME        TITLE                          PRODUCT      CHECK_OUT_DATE
 ---------------- ------------------------------ ------------ ------------------ 
 RETURN_DATE                                                                     
 ------------------                                                              
-Brian Winn       The Hunt for Red October       DVD          21-FEB-20          
-26-FEB-20                                                                       
+Brian Winn       The Hunt for Red October       DVD          22-FEB-20          
+27-FEB-20                                                                       
                                                                                 
-Brian Winn       We Were Soldiers               DVD          21-FEB-20          
-26-FEB-20                                                                       
+Brian Winn       We Were Soldiers               DVD          22-FEB-20          
+27-FEB-20                                                                       
                                                                                 
-Doreen Vizquel   Around the World in 80 Days    DVD          21-FEB-20          
-26-FEB-20                                                                       
+Doreen Vizquel   Around the World in 80 Days    DVD          22-FEB-20          
+27-FEB-20                                                                       
                                                                                 
-Doreen Vizquel   Tomorrow Never Dies            DVD          21-FEB-20          
-26-FEB-20                                                                       
+Doreen Vizquel   Tomorrow Never Dies            DVD          22-FEB-20          
+27-FEB-20                                                                       
                                                                                 
-Oscar Vizquel    Star Wars - Episode I          DVD          21-FEB-20          
-26-FEB-20                                                                       
+Oscar Vizquel    Star Wars - Episode I          DVD          22-FEB-20          
+27-FEB-20                                                                       
                                                                                 
-Oscar Vizquel    Star Wars - Episode II         DVD          21-FEB-20          
-26-FEB-20                                                                       
+Oscar Vizquel    Star Wars - Episode II         DVD          22-FEB-20          
+27-FEB-20                                                                       
                                                                                 
-Oscar Vizquel    Star Wars - Episode III        DVD          21-FEB-20          
-26-FEB-20                                                                       
+Oscar Vizquel    Star Wars - Episode III        DVD          22-FEB-20          
+27-FEB-20                                                                       
                                                                                 
-Ian M Sweeney    Spider-Man                     DVD          21-FEB-20          
-26-FEB-20                                                                       
+Ian M Sweeney    Spider-Man                     DVD          22-FEB-20          
+27-FEB-20                                                                       
                                                                                 
-Meaghan Sweeney  The Patriot                    DVD          21-FEB-20          
-26-FEB-20                                                                       
+Meaghan Sweeney  The Patriot                    DVD          22-FEB-20          
+27-FEB-20                                                                       
                                                                                 
 
 9 rows selected.
