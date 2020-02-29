@@ -1,0 +1,49 @@
+
+Package created.
+
+No errors.
+
+Package body created.
+
+No errors.
+
+1 row created.
+
+
+1 row created.
+
+
+1 row created.
+
+
+ System System       First         Last                                         
+User ID User Name    Name       MI Name                                         
+------- ------------ ---------- -- ----------                                   
+      6 BONDSB       Barry      L  Bonds                                        
+      7 CURRYW       Wardell    S  Curry                                        
+     -1 ANONYMOUS    <Null>     <N <Null>                                       
+                                ul                                              
+                                l>                                              
+                                                                                
+
+3 rows selected.
+
+
+PL/SQL procedure successfully completed.
+
+
+PL/SQL procedure successfully completed.
+
+
+PL/SQL procedure successfully completed.
+
+
+                         ACCOUNT                                                
+FULL_NAME                NUMBER     ADDRESS                TELEPHONE            
+------------------------ ---------- ---------------------- --------------       
+Charlie Brown            SLC-000011 Lehi, Utah             (207) 877-4321       
+Peppermint Patty         SLC-000011 Lehi, Utah             (207) 877-4321       
+Sally Brown              SLC-000011 Lehi, Utah             (207) 877-4321       
+
+3 rows selected.
+

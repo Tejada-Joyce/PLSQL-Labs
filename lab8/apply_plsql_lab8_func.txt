@@ -1,0 +1,39 @@
+
+Package created.
+
+No errors.
+
+Package body created.
+
+No errors.
+
+1 row created.
+
+
+1 row created.
+
+
+1 row created.
+
+Insert function succeeds.                                                       
+
+PL/SQL procedure successfully completed.
+
+Insert function succeeds.                                                       
+
+PL/SQL procedure successfully completed.
+
+Insert function succeeds.                                                       
+
+PL/SQL procedure successfully completed.
+
+
+                    System Account                                              
+Full Name          User ID Number       Address          Telephone              
+------------------ ------- ------------ ---------------- ----------------       
+Shirley Partridge        4 SLC-000012   Lehi, Utah       (207) 877-4321         
+Keith Partridge          6 SLC-000012   Lehi, Utah       (207) 877-4321         
+Laurie Partridge        -1 SLC-000012   Lehi, Utah       (207) 877-4321         
+
+3 rows selected.
+
