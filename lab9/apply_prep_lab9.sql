@@ -40,8 +40,8 @@ SET PAGESIZE 49999
 SET SERVEROUTPUT ON SIZE 1000000
 
 /* Call seeding libraries. */
-@$LIB/cleanup_oracle.sql
-@$LIB/Oracle12cPLSQLCode/Introduction/create_video_store.sql
+@/home/student/Data/cit325/lib/cleanup_oracle.sql
+@/home/student/Data/cit325/lib/Oracle12cPLSQLCode/Introduction/create_video_store.sql
 
 ALTER SESSION SET PLSQL_CCFLAGS = 'debug:1';
 
