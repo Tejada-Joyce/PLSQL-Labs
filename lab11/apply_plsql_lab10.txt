@@ -1,0 +1,196 @@
+
+Table altered.
+
+
+TABLE_NAME     COLUMN_ID COLUMN_NAME            NULLABLE DATA_TYPE              
+-------------- --------- ---------------------- -------- ------------           
+ITEM                   1 ITEM_ID                NOT NULL NUMBER(22)             
+ITEM                   2 ITEM_BARCODE           NOT NULL VARCHAR2(20)           
+ITEM                   3 ITEM_TYPE              NOT NULL NUMBER(22)             
+ITEM                   4 ITEM_TITLE             NOT NULL VARCHAR2(60)           
+ITEM                   5 ITEM_SUBTITLE          <Null>   VARCHAR2(60)           
+ITEM                   6 ITEM_DESC              NOT NULL CLOB                   
+ITEM                   7 ITEM_PHOTO             <Null>   BFILE                  
+ITEM                   8 ITEM_RATING            NOT NULL VARCHAR2(8)            
+ITEM                   9 ITEM_RATING_AGENCY     NOT NULL VARCHAR2(4)            
+ITEM                  10 ITEM_RELEASE_DATE      NOT NULL DATE                   
+ITEM                  11 CREATED_BY             NOT NULL NUMBER(22)             
+ITEM                  12 CREATION_DATE          NOT NULL DATE                   
+ITEM                  13 LAST_UPDATED_BY        NOT NULL NUMBER(22)             
+ITEM                  14 LAST_UPDATE_DATE       NOT NULL DATE                   
+ITEM                  15 TEXT_FILE_NAME         <Null>   VARCHAR2(40)           
+
+15 rows selected.
+
+DROP TABLE logger
+           *
+ERROR at line 1:
+ORA-00942: table or view does not exist 
+
+
+DROP SEQUENCE logger_s
+              *
+ERROR at line 1:
+ORA-02289: sequence does not exist 
+
+
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ ITEM_ID                                   NOT NULL NUMBER
+ ITEM_BARCODE                              NOT NULL VARCHAR2(20)
+ ITEM_TYPE                                 NOT NULL NUMBER
+ ITEM_TITLE                                NOT NULL VARCHAR2(60)
+ ITEM_SUBTITLE                                      VARCHAR2(60)
+ ITEM_DESC                                 NOT NULL CLOB
+ ITEM_PHOTO                                         BINARY FILE LOB
+ ITEM_RATING                               NOT NULL VARCHAR2(8)
+ ITEM_RATING_AGENCY                        NOT NULL VARCHAR2(4)
+ ITEM_RELEASE_DATE                         NOT NULL DATE
+ CREATED_BY                                NOT NULL NUMBER
+ CREATION_DATE                             NOT NULL DATE
+ LAST_UPDATED_BY                           NOT NULL NUMBER
+ LAST_UPDATE_DATE                          NOT NULL DATE
+ TEXT_FILE_NAME                                     VARCHAR2(40)
+
+
+Table created.
+
+
+Sequence created.
+
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ LOGGER_ID                                 NOT NULL NUMBER
+ OLD_ITEM_ID                                        NUMBER
+ OLD_ITEM_BARCODE                                   VARCHAR2(20)
+ OLD_ITEM_TYPE                                      NUMBER
+ OLD_ITEM_TITLE                                     VARCHAR2(60)
+ OLD_ITEM_SUBTITLE                                  VARCHAR2(60)
+ OLD_ITEM_RATING                                    VARCHAR2(8)
+ OLD_ITEM_RATING_AGENCY                             VARCHAR2(4)
+ OLD_ITEM_RELEASE_DATE                              DATE
+ OLD_CREATED_BY                                     NUMBER
+ OLD_CREATION_DATE                                  DATE
+ OLD_LAST_UPDATED_BY                                NUMBER
+ OLD_LAST_UPDATE_DATE                               DATE
+ OLD_TEXT_FILE_NAME                                 VARCHAR2(40)
+ NEW_ITEM_ID                                        NUMBER
+ NEW_ITEM_BARCODE                                   VARCHAR2(20)
+ NEW_ITEM_TYPE                                      NUMBER
+ NEW_ITEM_TITLE                                     VARCHAR2(60)
+ NEW_ITEM_SUBTITLE                                  VARCHAR2(60)
+ NEW_ITEM_RATING                                    VARCHAR2(8)
+ NEW_ITEM_RATING_AGENCY                             VARCHAR2(4)
+ NEW_ITEM_RELEASE_DATE                              DATE
+ NEW_CREATED_BY                                     NUMBER
+ NEW_CREATION_DATE                                  DATE
+ NEW_LAST_UPDATED_BY                                NUMBER
+ NEW_LAST_UPDATE_DATE                               DATE
+ NEW_TEXT_FILE_NAME                                 VARCHAR2(40)
+
+
+PL/SQL procedure successfully completed.
+
+
+         Old                        New                                         
+Logger  Item                       Item                                         
+  ID #  ID # Old Item Title        ID # New Item Title                          
+------ ----- -------------------- ----- ------------------------------          
+     1  1014 Brave Heart           1014 Brave Heart                             
+
+1 row selected.
+
+
+Package created.
+
+
+Package body created.
+
+No errors.
+PROCEDURE ITEM_INSERT
+ Argument Name                  Type                    In/Out Default?
+ ------------------------------ ----------------------- ------ --------
+ PV_NEW_ITEM_ID                 NUMBER                  IN    
+ PV_NEW_ITEM_BARCODE            VARCHAR2                IN    
+ PV_NEW_ITEM_TYPE               NUMBER                  IN    
+ PV_NEW_ITEM_TITLE              VARCHAR2                IN    
+ PV_NEW_ITEM_SUBTITLE           VARCHAR2                IN    
+ PV_NEW_ITEM_RATING             VARCHAR2                IN    
+ PV_NEW_ITEM_RATING_AGENCY      VARCHAR2                IN    
+ PV_NEW_ITEM_RELEASE_DATE       DATE                    IN    
+ PV_NEW_CREATED_BY              NUMBER                  IN    
+ PV_NEW_CREATION_DATE           DATE                    IN    
+ PV_NEW_LAST_UPDATED_BY         NUMBER                  IN    
+ PV_NEW_LAST_UPDATE_DATE        DATE                    IN    
+ PV_NEW_TEXT_FILE_NAME          VARCHAR2                IN    
+PROCEDURE ITEM_INSERT
+ Argument Name                  Type                    In/Out Default?
+ ------------------------------ ----------------------- ------ --------
+ PV_OLD_ITEM_ID                 NUMBER                  IN    
+ PV_OLD_ITEM_BARCODE            VARCHAR2                IN    
+ PV_OLD_ITEM_TYPE               NUMBER                  IN    
+ PV_OLD_ITEM_TITLE              VARCHAR2                IN    
+ PV_OLD_ITEM_SUBTITLE           VARCHAR2                IN    
+ PV_OLD_ITEM_RATING             VARCHAR2                IN    
+ PV_OLD_ITEM_RATING_AGENCY      VARCHAR2                IN    
+ PV_OLD_ITEM_RELEASE_DATE       DATE                    IN    
+ PV_OLD_CREATED_BY              NUMBER                  IN    
+ PV_OLD_CREATION_DATE           DATE                    IN    
+ PV_OLD_LAST_UPDATED_BY         NUMBER                  IN    
+ PV_OLD_LAST_UPDATE_DATE        DATE                    IN    
+ PV_OLD_TEXT_FILE_NAME          VARCHAR2                IN    
+ PV_NEW_ITEM_ID                 NUMBER                  IN    
+ PV_NEW_ITEM_BARCODE            VARCHAR2                IN    
+ PV_NEW_ITEM_TYPE               NUMBER                  IN    
+ PV_NEW_ITEM_TITLE              VARCHAR2                IN    
+ PV_NEW_ITEM_SUBTITLE           VARCHAR2                IN    
+ PV_NEW_ITEM_RATING             VARCHAR2                IN    
+ PV_NEW_ITEM_RATING_AGENCY      VARCHAR2                IN    
+ PV_NEW_ITEM_RELEASE_DATE       DATE                    IN    
+ PV_NEW_CREATED_BY              NUMBER                  IN    
+ PV_NEW_CREATION_DATE           DATE                    IN    
+ PV_NEW_LAST_UPDATED_BY         NUMBER                  IN    
+ PV_NEW_LAST_UPDATE_DATE        DATE                    IN    
+ PV_NEW_TEXT_FILE_NAME          VARCHAR2                IN    
+PROCEDURE ITEM_INSERT
+ Argument Name                  Type                    In/Out Default?
+ ------------------------------ ----------------------- ------ --------
+ PV_OLD_ITEM_ID                 NUMBER                  IN    
+ PV_OLD_ITEM_BARCODE            VARCHAR2                IN    
+ PV_OLD_ITEM_TYPE               NUMBER                  IN    
+ PV_OLD_ITEM_TITLE              VARCHAR2                IN    
+ PV_OLD_ITEM_SUBTITLE           VARCHAR2                IN    
+ PV_OLD_ITEM_RATING             VARCHAR2                IN    
+ PV_OLD_ITEM_RATING_AGENCY      VARCHAR2                IN    
+ PV_OLD_ITEM_RELEASE_DATE       DATE                    IN    
+ PV_OLD_CREATED_BY              NUMBER                  IN    
+ PV_OLD_CREATION_DATE           DATE                    IN    
+ PV_OLD_LAST_UPDATED_BY         NUMBER                  IN    
+ PV_OLD_LAST_UPDATE_DATE        DATE                    IN    
+ PV_OLD_TEXT_FILE_NAME          VARCHAR2                IN    
+
+
+PL/SQL procedure successfully completed.
+
+
+PL/SQL procedure successfully completed.
+
+
+PL/SQL procedure successfully completed.
+
+
+         Old                        New                                         
+Logger  Item                       Item                                         
+  ID #  ID # Old Item Title        ID # New Item Title                          
+------ ----- -------------------- ----- ------------------------------          
+     1  1014 Brave Heart           1014 Brave Heart                             
+     2 <Null <Null>                1035 King Arthur-Inserted                    
+       >                                                                        
+                                                                                
+     3  1035 King Arthur           1035 King Arthur-Changed                     
+     4  1035 King Arthur-Deleted  <Null <Null>                                  
+                                  >                                             
+                                                                                
+
+4 rows selected.
+

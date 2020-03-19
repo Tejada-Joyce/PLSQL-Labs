@@ -1,0 +1,38 @@
+DROP TABLE ACCOUNT_LIST;                                                        
+DROP SEQUENCE ACCOUNT_LIST_S1;                                                  
+DROP TABLE ADDRESS;                                                             
+DROP INDEX ADDRESS_N1;                                                          
+DROP SEQUENCE ADDRESS_S1;                                                       
+DROP PROCEDURE ADD_CONTACT;                                                     
+DROP PROCEDURE ADD_MEMBER;                                                      
+DROP TABLE AIRPORT;                                                             
+DROP SEQUENCE AIRPORT_S1;                                                       
+DROP INDEX AIRPORT_U1;                                                          
+DROP TABLE CALENDAR;                                                            
+DROP SEQUENCE CALENDAR_S1;                                                      
+DROP TABLE COMMON_LOOKUP;                                                       
+DROP INDEX COMMON_LOOKUP_N1;                                                    
+DROP SEQUENCE COMMON_LOOKUP_S1;                                                 
+DROP INDEX COMMON_LOOKUP_U2;                                                    
+DROP TABLE CONTACT;                                                             
+DROP PROCEDURE CONTACT_INSERT;                                                  
+DROP PROCEDURE CONTACT_INSERT_10G;                                              
+DROP TYPE CONTACT_LIST_TYPE;                                                    
+DROP INDEX CONTACT_N1;                                                          
+DROP TYPE CONTACT_NAME_STRUCT;                                                  
+DROP SEQUENCE CONTACT_S1;                                                       
+DROP VIEW CURRENT_RENTAL;                                                       
+DROP TABLE ITEM;                                                                
+DROP SEQUENCE ITEM_S1;                                                          
+DROP TABLE LOGGER;                                                              
+DROP INDEX LOGGER_PK;                                                           
+DROP SEQUENCE LOGGER_S;                                                         
+DROP PACKAGE MANAGE_ITEM;                                                       
+DROP PACKAGE BODY MANAGE_ITEM;                                                  
+BEGIN
+*
+ERROR at line 1:
+ORA-04043: object MANAGE_ITEM does not exist
+ORA-06512: at line 51 
+
+
