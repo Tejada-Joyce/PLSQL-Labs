@@ -1279,32 +1279,32 @@ FULL_NAME        TITLE                          PRODUCT      CHECK_OUT_DATE
 ---------------- ------------------------------ ------------ ------------------ 
 RETURN_DATE                                                                     
 ------------------                                                              
-Brian Winn       The Hunt for Red October       DVD          18-MAR-20          
-23-MAR-20                                                                       
+Brian Winn       The Hunt for Red October       DVD          20-MAR-20          
+25-MAR-20                                                                       
                                                                                 
-Brian Winn       We Were Soldiers               DVD          18-MAR-20          
-23-MAR-20                                                                       
+Brian Winn       We Were Soldiers               DVD          20-MAR-20          
+25-MAR-20                                                                       
                                                                                 
-Doreen Vizquel   Around the World in 80 Days    DVD          18-MAR-20          
-23-MAR-20                                                                       
+Doreen Vizquel   Around the World in 80 Days    DVD          20-MAR-20          
+25-MAR-20                                                                       
                                                                                 
-Doreen Vizquel   Tomorrow Never Dies            DVD          18-MAR-20          
-23-MAR-20                                                                       
+Doreen Vizquel   Tomorrow Never Dies            DVD          20-MAR-20          
+25-MAR-20                                                                       
                                                                                 
-Oscar Vizquel    Star Wars - Episode I          DVD          18-MAR-20          
-23-MAR-20                                                                       
+Oscar Vizquel    Star Wars - Episode I          DVD          20-MAR-20          
+25-MAR-20                                                                       
                                                                                 
-Oscar Vizquel    Star Wars - Episode II         DVD          18-MAR-20          
-23-MAR-20                                                                       
+Oscar Vizquel    Star Wars - Episode II         DVD          20-MAR-20          
+25-MAR-20                                                                       
                                                                                 
-Oscar Vizquel    Star Wars - Episode III        DVD          18-MAR-20          
-23-MAR-20                                                                       
+Oscar Vizquel    Star Wars - Episode III        DVD          20-MAR-20          
+25-MAR-20                                                                       
                                                                                 
-Ian M Sweeney    Spider-Man                     DVD          18-MAR-20          
-23-MAR-20                                                                       
+Ian M Sweeney    Spider-Man                     DVD          20-MAR-20          
+25-MAR-20                                                                       
                                                                                 
-Meaghan Sweeney  The Patriot                    DVD          18-MAR-20          
-23-MAR-20                                                                       
+Meaghan Sweeney  The Patriot                    DVD          20-MAR-20          
+25-MAR-20                                                                       
                                                                                 
 
 9 rows selected.
