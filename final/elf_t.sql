@@ -31,13 +31,7 @@ CREATE OR REPLACE
       /* Assign inputs to instance variables. */
       self.oid := oid;
       self.oname := oname;
-
-      /* Assign a designated value or assign a null value. */
-      IF name IS NOT NULL AND name IN ('NEW','OLD') THEN
-        self.name := name;
-      END IF;
-
-      /* Assign inputs to instance variables. */
+      self.name := name;
       self.genus := genus;
 
       /* Return an instance of self. */
