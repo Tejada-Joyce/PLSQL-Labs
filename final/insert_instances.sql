@@ -194,3 +194,5 @@ VALUES
   , oname => 'Man'
   , name => 'Aragorn'
   , genus => 'Men'));  
+  
+QUIT;  

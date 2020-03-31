@@ -2,7 +2,7 @@
 SET PAGESIZE 999
 
 /* Write to log file. */
-SPOOL type_validation.txt
+-- SPOOL type_validation.txt
 
 COL name FORMAT A16 HEADING "Base|Object Name"
 COL referenced_name FORMAT A12 HEADING "Referenced|Object Name"
@@ -44,7 +44,7 @@ ORDER BY
 , referenced_name DESC;
 
 /* Close log file. */
-SPOOL OFF
+-- SPOOL OFF
 
 /* Close connection. */
 QUIT

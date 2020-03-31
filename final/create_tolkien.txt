@@ -1,27 +1,12 @@
-SQL> 
-SQL> /* Drop the tolkien table. */
-SQL> DROP TABLE tolkien;
 
 Table dropped.
 
-SQL> 
-SQL> /* Create the tolkien table. */
-SQL> CREATE TABLE tolkien
-  2  ( tolkien_id NUMBER
-  3  , tolkien_character base_t);
 
 Table created.
 
-SQL> 
-SQL> /* Drop and create a tolkien_s sequence. */
-SQL> DROP SEQUENCE tolkien_s;
 
 Sequence dropped.
 
-SQL> CREATE SEQUENCE tolkien_s START WITH 1001;
 
 Sequence created.
 
-SQL> 
-SQL> /* Close log file. */
-SQL> SPOOL OFF

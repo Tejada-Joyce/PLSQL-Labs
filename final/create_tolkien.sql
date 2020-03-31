@@ -2,7 +2,7 @@
 SET PAGESIZE 999
 
 /* Write to log file. */
-SPOOL create_tolkien.txt
+-- SPOOL create_tolkien.txt
 
 /* Drop the tolkien table. */
 DROP TABLE tolkien;
@@ -17,7 +17,7 @@ DROP SEQUENCE tolkien_s;
 CREATE SEQUENCE tolkien_s START WITH 1001;
 
 /* Close log file. */
-SPOOL OFF
+-- SPOOL OFF
 
 /* Exit the connection. */
 QUIT
