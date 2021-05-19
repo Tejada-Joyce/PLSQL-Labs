@@ -16,6 +16,8 @@ SET SERVEROUTPUT ON
 SET VERIFY OFF
 
 
+-- added in 2021 
+DROP SEQUENCE rating_agency_s;
 --  Create sequence
 CREATE SEQUENCE rating_agency_s START WITH 1001;
 
@@ -94,14 +96,16 @@ BEGIN
        rating_agency_obj( rating_agency_id => i.rating_agency_id
                         , rating  => i.rating
                         , rating_agency => i.rating_agency );
-    INSERT INTO rating_agency
-        ( rating_agency_id
-        , rating
-        , rating_agency )
-        VALUES
-        ( i.rating_agency_id
-        , i.rating
-        , i.rating_agency );
+                        
+-- Edited in 2021 --- I don't know why I included this, but I don't think I need it                        
+--     INSERT INTO rating_agency
+--         ( rating_agency_id
+--         , rating
+--         , rating_agency )
+--         VALUES
+--         ( i.rating_agency_id
+--         , i.rating
+--         , i.rating_agency );
   END LOOP;
 
 --   A range for loop that reads the collection contents and updates the RATING_AGENCY_ID column 
