@@ -51,7 +51,7 @@ B01LTHWTHO Inferno                                          24-JAN-17
 6 rows selected.
 
 SQL> 
-SQL> CREATE OR REPLACE PROCEDURE insert_items
+SQL> CREATE PROCEDURE insert_items
   2  ( pv_items  ITEM_TAB ) IS
   3  
   4   /* Declare error handling variables. */
@@ -83,8 +83,11 @@ SQL> CREATE OR REPLACE PROCEDURE insert_items
  30  	 RAISE;
  31  END;
  32  /
+CREATE PROCEDURE insert_items
+                 *
+ERROR at line 1:
+ORA-00955: name is already used by an existing object 
 
-Procedure created.
 
 SQL> 
 SQL> -- Test a call to the insert_items procedure for a set of entries
@@ -166,8 +169,8 @@ SQL> -- test a second call to the insert_items procedure for a set of entries.
 SQL> DECLARE
   2  
   3    /* Declare the local error handling variables. */
-  4    lv_local_object	VARCHAR2(30);
-  5    lv_local_module	VARCHAR2(30);
+  4  	lv_local_object  VARCHAR2(30) := 'ANONYMOUS';
+  5    lv_local_module	VARCHAR2(30) := 'LOCAL';
   6  
   7    /* Create a collection. */
   8    lv_items  ITEM_TAB :=
@@ -257,7 +260,7 @@ SQL> SELECT   ne.error_id
   Error                                           Error                         
    ID # Object Name          Module Name          ID #                          
 ------- -------------------- -------------------- ----------                    
-      3 PROCEDURE            INSERT_ITEMS         ORA-20001                     
+      3 ANONYMOUS            LOCAL                ORA-20001                     
       2 PROCEDURE            INSERT_ITEM          ORA-20001                     
       1 Test Object          Test Module          ORA-00001                     
 
