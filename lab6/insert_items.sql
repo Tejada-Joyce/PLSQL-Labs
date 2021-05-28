@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE insert_items
+CREATE REPLACE PROCEDURE insert_items
 ( pv_items  ITEM_TAB ) IS
 
  /* Declare error handling variables. */
