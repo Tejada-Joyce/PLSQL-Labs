@@ -185,7 +185,7 @@ FROM   item i
 WHERE  REGEXP_LIKE(i.item_title,'^.*bourne.*$','i')
 OR     REGEXP_LIKE(i.item_title,'^.*inferno.*$','i');
 
-CREATE OR REPLACE PROCEDURE insert_items
+CREATE PROCEDURE insert_items
 ( pv_items  ITEM_TAB ) IS
 
  /* Declare error handling variables. */
@@ -278,8 +278,8 @@ ORDER BY CASE
 DECLARE
 
   /* Declare the local error handling variables. */
-  lv_local_object  VARCHAR2(30);
-  lv_local_module  VARCHAR2(30);
+  lv_local_object  VARCHAR2(30) := 'ANONYMOUS';
+  lv_local_module  VARCHAR2(30) := 'LOCAL';
 
   /* Create a collection. */
   lv_items  ITEM_TAB :=
