@@ -185,6 +185,10 @@ FROM   item i
 WHERE  REGEXP_LIKE(i.item_title,'^.*bourne.*$','i')
 OR     REGEXP_LIKE(i.item_title,'^.*inferno.*$','i');
 
+
+ /* If the instructor clarifies that the output should have 4 lines, use CREATE OR REPLACE PROCEDURE insert_items.
+    This should be the correct code */
+/* The next block of code really is not "doing" anything since it is overwritten by the prep lab. */
 CREATE PROCEDURE insert_items
 ( pv_items  ITEM_TAB ) IS
 
