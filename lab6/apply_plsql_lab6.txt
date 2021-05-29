@@ -269,3 +269,6 @@ SQL> SELECT   ne.error_id
 SQL> 
 SQL> -- Close log file.
 SQL> SPOOL OFF
+
+
+(the output should include 4 rows if ran properly --- using CREATE or REPLACE)
